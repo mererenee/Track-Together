@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Together Tracker</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f4f0;color:#1a1a1a;min-height:100vh}
+.app{max-width:680px;margin:0 auto;padding:1rem}
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:.75rem 0 1rem;border-bottom:1px solid #e0ddd6;margin-bottom:1rem}
+.app-title{font-size:17px;font-weight:600;display:flex;align-items:center;gap:8px;color:#1a1a1a}
+.heart{color:#D85A30;font-size:18px}
+.profile-toggle{display:flex;gap:6px}
+.profile-btn{padding:6px 18px;border-radius:20px;border:1px solid #ccc;background:#fff;cursor:pointer;font-size:13px;color:#666;transition:all .15s}
+.profile-btn.active{background:#7F77DD;border-color:#7F77DD;color:#fff;font-weight:500}
+.nav{display:flex;gap:2px;margin-bottom:1.25rem;border-bottom:1px solid #e0ddd6}
+.nav-btn{padding:9px 14px;border:none;background:transparent;cursor:pointer;font-size:13px;color:#888;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;white-space:nowrap}
+.nav-btn.active{color:#7F77DD;border-bottom-color:#7F77DD;font-weight:500}
+.nav-btn:hover:not(.active){color:#444}
+.section{display:none}
+.section.active{display:block}
+.card{background:#fff;border:1px solid #e8e5de;border-radius:12px;padding:1rem 1.25rem;margin-bottom:1rem}
+.card-title{font-size:13px;color:#888;margin-bottom:.75rem;font-weight:500}
+.metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-bottom:1rem}
+.metric{background:#f5f4f0;border-radius:8px;padding:.75rem 1rem}
+.metric-label{font-size:12px;color:#888;margin-bottom:4px}
+.metric-val{font-size:22px;font-weight:600;color:#1a1a1a}
+.metric-val small{font-size:13px;font-weight:400;color:#aaa}
+.metric-goal{font-size:11px;color:#bbb;margin-top:2px}
+.progress-bar{height:6px;border-radius:3px;background:#e8e5de;margin-top:6px;overflow:hidden}
+.progress-fill{height:100%;border-radius:3px;background:#7F77DD;transition:width .4s}
+.progress-fill.green{background:#639922}
+.progress-fill.amber{background:#BA7517}
+.progress-fill.coral{background:#D85A30}
+.input-row{display:flex;gap:8px;align-items:center;margin-bottom:.75rem}
+.input-row label{font-size:13px;color:#666;min-width:80px}
+.input-row input[type=number]{width:100px;padding:7px 10px;border-radius:8px;border:1px solid #ddd;background:#fff;color:#1a1a1a;font-size:14px}
+.input-row input:focus{outline:none;border-color:#7F77DD}
+.input-row span{font-size:12px;color:#aaa}
+.log-btn{padding:9px 20px;border-radius:8px;border:none;background:#7F77DD;color:#fff;cursor:pointer;font-size:14px;font-weight:500;width:100%;margin-top:.25rem;transition:opacity .15s}
+.log-btn:hover{opacity:.88}
+.save-btn{padding:8px 18px;border-radius:8px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:13px;color:#666;margin-top:.25rem}
+.save-btn:hover{background:#f5f4f0}
+.habit-row{display:flex;align-items:center;justify-content:space-between;padding:.65rem 0;border-bottom:1px solid #f0ede8}
+.habit-row:last-child{border-bottom:none}
+.habit-name{font-size:14px;color:#1a1a1a}
+.habit-sub{font-size:12px;color:#aaa;margin-top:2px}
+.habit-check{width:24px;height:24px;border-radius:50%;border:1.5px solid #ccc;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;color:transparent;font-size:13px;font-weight:700}
+.habit-check.done{background:#639922;border-color:#639922;color:#fff}
+.custom-row{display:flex;gap:6px;margin-top:.875rem}
+.custom-row input{flex:1;padding:7px 10px;border-radius:8px;border:1px solid #ddd;background:#fff;color:#1a1a1a;font-size:13px}
+.custom-ro
