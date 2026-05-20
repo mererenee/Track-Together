@@ -50,4 +50,336 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .habit-check.done{background:#639922;border-color:#639922;color:#fff}
 .custom-row{display:flex;gap:6px;margin-top:.875rem}
 .custom-row input{flex:1;padding:7px 10px;border-radius:8px;border:1px solid #ddd;background:#fff;color:#1a1a1a;font-size:13px}
-.custom-ro
+.custom-row input:focus{outline:none;border-color:#7F77DD}
+.add-btn{padding:7px 14px;border-radius:8px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:13px;color:#666}
+.add-btn:hover{background:#f5f4f0}
+.week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:.5rem}
+.day-cell{text-align:center;padding:.4rem 0}
+.day-label{font-size:11px;color:#aaa;margin-bottom:5px}
+.day-dot{width:30px;height:30px;border-radius:50%;margin:0 auto;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;border:1px solid #e0ddd6;color:#ccc;background:#fff}
+.day-dot.complete{background:#7F77DD;border-color:#7F77DD;color:#fff}
+.day-dot.partial{background:#FAEEDA;border-color:#BA7517;color:#633806}
+.day-dot.today-dot{border:2px solid #7F77DD;color:#7F77DD;background:#f0effe}
+.review-q{margin-bottom:1.25rem}
+.q-text{font-size:14px;font-weight:500;color:#1a1a1a;margin-bottom:.5rem;line-height:1.4}
+.review-q textarea{width:100%;padding:.65rem .875rem;border-radius:8px;border:1px solid #ddd;background:#fff;color:#1a1a1a;font-size:13px;resize:vertical;min-height:66px;font-family:inherit;line-height:1.5}
+.review-q textarea:focus{outline:none;border-color:#7F77DD}
+.section-heading{font-size:11px;font-weight:600;color:#aaa;text-transform:uppercase;letter-spacing:.06em;margin:1.25rem 0 .65rem;padding-bottom:.4rem;border-bottom:1px solid #f0ede8}
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.compare-card{background:#fff;border:1px solid #e8e5de;border-radius:12px;padding:.875rem 1rem}
+.compare-name{font-size:13px;font-weight:500;color:#1a1a1a;margin-bottom:.75rem;display:flex;align-items:center;gap:7px}
+.avatar{width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:600}
+.avatar.p1{background:#EEEDFE;color:#3C3489}
+.avatar.p2{background:#E1F5EE;color:#085041}
+.mini-bar-row{margin-bottom:.5rem}
+.mini-bar-label{display:flex;justify-content:space-between;font-size:12px;color:#888;margin-bottom:3px}
+.badge{display:inline-block;padding:2px 7px;border-radius:6px;font-size:11px;font-weight:500}
+.badge-good{background:#EAF3DE;color:#27500A}
+.badge-mid{background:#FAEEDA;color:#633806}
+.badge-low{background:#FAECE7;color:#4A1B0C}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .3s;z-index:999}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div id="toast" class="toast"></div>
+<div class="app">
+  <div class="top-bar">
+    <div class="app-title"><span class="heart">♥</span> Together Tracker</div>
+    <div class="profile-toggle">
+      <button class="profile-btn active" onclick="switchProfile('p1')">You</button>
+      <button class="profile-btn" onclick="switchProfile('p2')">Husband</button>
+    </div>
+  </div>
+
+  <nav class="nav">
+    <button class="nav-btn active" onclick="switchTab('today',this)">Today</button>
+    <button class="nav-btn" onclick="switchTab('macros',this)">Macros</button>
+    <button class="nav-btn" onclick="switchTab('habits',this)">Habits</button>
+    <button class="nav-btn" onclick="switchTab('week',this)">Week</button>
+    <button class="nav-btn" onclick="switchTab('review',this)">Review</button>
+  </nav>
+
+  <!-- TODAY -->
+  <div class="section active" id="tab-today">
+    <div class="metric-grid" id="today-macros"></div>
+    <div class="card">
+      <div class="card-title">Today's habits</div>
+      <div id="today-habits"></div>
+    </div>
+    <div class="compare-grid" style="margin-bottom:1rem">
+      <div class="compare-card">
+        <div class="compare-name"><span class="avatar p1" id="av1">Y</span><span id="cn1">You</span></div>
+        <div id="cp1"></div>
+      </div>
+      <div class="compare-card">
+        <div class="compare-name"><span class="avatar p2" id="av2">H</span><span id="cn2">Husband</span></div>
+        <div id="cp2"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MACROS -->
+  <div class="section" id="tab-macros">
+    <div class="card">
+      <div class="card-title">Log macros — <span id="macro-who">you</span></div>
+      <div class="input-row"><label>Calories</label><input type="number" id="in-cal" min="0" placeholder="0"><span>kcal</span></div>
+      <div class="input-row"><label>Protein</label><input type="number" id="in-pro" min="0" placeholder="0"><span>g</span></div>
+      <div class="input-row"><label>Carbs</label><input type="number" id="in-carb" min="0" placeholder="0"><span>g</span></div>
+      <div class="input-row"><label>Fat</label><input type="number" id="in-fat" min="0" placeholder="0"><span>g</span></div>
+      <button class="log-btn" onclick="logMacros()">+ Log macros</button>
+    </div>
+    <div class="card" id="macro-totals-card">
+      <div class="card-title">Today's totals</div>
+      <div id="macro-totals"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Daily goals</div>
+      <div class="input-row"><label>Calories</label><input type="number" id="goal-cal" min="0" placeholder="2000"><span>kcal</span></div>
+      <div class="input-row"><label>Protein</label><input type="number" id="goal-pro" min="0" placeholder="150"><span>g</span></div>
+      <div class="input-row"><label>Carbs</label><input type="number" id="goal-carb" min="0" placeholder="200"><span>g</span></div>
+      <div class="input-row"><label>Fat</label><input type="number" id="goal-fat" min="0" placeholder="65"><span>g</span></div>
+      <button class="save-btn" onclick="saveGoals()">✓ Save goals</button>
+    </div>
+  </div>
+
+  <!-- HABITS -->
+  <div class="section" id="tab-habits">
+    <div class="card">
+      <div class="card-title">Daily habits — <span id="habit-who">you</span></div>
+      <div id="habit-list"></div>
+      <div class="custom-row">
+        <input type="text" id="new-habit" placeholder="Add custom habit...">
+        <button class="add-btn" onclick="addHabit()">+ Add</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- WEEK -->
+  <div class="section" id="tab-week">
+    <div class="card">
+      <div class="card-title">This week — habit streak</div>
+      <div class="week-grid" id="week-view"></div>
+      <div id="streak-msg" style="font-size:12px;color:#888;margin-top:.25rem"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Weekly plan</div>
+      <div class="review-q">
+        <div class="q-text">Top 3 priorities this week</div>
+        <textarea id="wk-priorities" placeholder="e.g. Meal prep Sunday, gym 3x, call the plumber..."></textarea>
+      </div>
+      <div class="review-q">
+        <div class="q-text">Home tasks to tackle together</div>
+        <textarea id="wk-home" placeholder="e.g. Grocery run, deep clean kitchen, budget review..."></textarea>
+      </div>
+      <div class="review-q">
+        <div class="q-text">Something fun to do together this week</div>
+        <textarea id="wk-fun" placeholder="e.g. Date night, cook a new recipe, Sunday hike..."></textarea>
+      </div>
+      <button class="log-btn" onclick="savePlan()">Save plan</button>
+    </div>
+  </div>
+
+  <!-- REVIEW -->
+  <div class="section" id="tab-review">
+    <div class="card">
+      <div style="font-size:15px;font-weight:600;color:#1a1a1a;margin-bottom:.25rem">Weekly review</div>
+      <div style="font-size:13px;color:#888;margin-bottom:.5rem">Discuss these together</div>
+
+      <div class="section-heading">Health &amp; nutrition</div>
+      <div class="review-q">
+        <div class="q-text">How did your nutrition feel this week? Any wins or struggles?</div>
+        <textarea placeholder="Reflect together..."></textarea>
+      </div>
+      <div class="review-q">
+        <div class="q-text">Which habits stuck? Which need more support?</div>
+        <textarea placeholder="Reflect together..."></textarea>
+      </div>
+
+      <div class="section-heading">Home &amp; finances</div>
+      <div class="review-q">
+        <div class="q-text">Did we stay on budget this week? Any unexpected expenses?</div>
+        <textarea placeholder="Reflect together..."></textarea>
+      </div>
+      <div class="review-q">
+        <div class="q-text">What home tasks are still pending or coming up?</div>
+        <textarea placeholder="Reflect together..."></textarea>
+      </div>
+
+      <div class="section-heading">Personal goals</div>
+      <div class="review-q">
+        <div class="q-text">What progress did each of us make on personal goals?</div>
+        <textarea placeholder="Reflect together..."></textarea>
+      </div>
+
+      <div class="section-heading">Connection &amp; relationship</div>
+      <div class="review-q">
+        <div class="q-text">On a scale of 1–10, how connected did we feel this week? Why?</div>
+        <textarea placeholder="Reflect together..."></textarea>
+      </div>
+      <div class="review-q">
+        <div class="q-text">One thing we each appreciated about the other this week</div>
+        <textarea placeholder="Reflect together..."></textarea>
+      </div>
+      <div class="review-q">
+        <div class="q-text">One thing we want to do differently next week</div>
+        <textarea placeholder="Reflect together..."></textarea>
+      </div>
+      <button class="log-btn" onclick="saveReview()">Save review</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const todayIdx=new Date().getDay();
+
+function makeProfile(name,initials,calGoal,proGoal,carbGoal,fatGoal){
+  return{name,initials,macros:{cal:0,pro:0,carb:0,fat:0},goals:{cal:calGoal,pro:proGoal,carb:carbGoal,fat:fatGoal},habits:[{name:'Water (8 glasses)',done:false,sub:'Hydration'},{name:'Exercise',done:false,sub:'Movement'},{name:'Sleep 7–8 hrs',done:false,sub:'Recovery'}],weekDone:Array(7).fill(false)};
+}
+
+const data={p1:makeProfile('You','Y',2000,150,200,65),p2:makeProfile('Husband','H',2500,180,250,80)};
+let active='p1';
+function P(){return data[active];}
+
+function switchProfile(pid){
+  active=pid;
+  document.querySelectorAll('.profile-btn').forEach((b,i)=>b.classList.toggle('active',(i===0&&pid==='p1')||(i===1&&pid==='p2')));
+  renderAll();
+}
+
+function switchTab(tab,btn){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  btn.classList.add('active');
+}
+
+function pct(v,g){return g>0?Math.min(100,Math.round(v/g*100)):0;}
+function fillClass(p){return p>=85?'green':p>=50?'':p>=25?'amber':'coral';}
+function badgeClass(p){return p>=85?'badge-good':p>=50?'badge-mid':'badge-low';}
+
+function renderTodayMacros(){
+  const p=P();
+  const items=[['Calories','cal','kcal'],['Protein','pro','g'],['Carbs','carb','g'],['Fat','fat','g']];
+  document.getElementById('today-macros').innerHTML=items.map(([lbl,k,u])=>{
+    const pc=pct(p.macros[k],p.goals[k]);
+    return`<div class="metric"><div class="metric-label">${lbl}</div><div class="metric-val">${p.macros[k]}<small>${u}</small></div><div class="metric-goal">Goal: ${p.goals[k]}${u}</div><div class="progress-bar"><div class="progress-fill ${fillClass(pc)}" style="width:${pc}%"></div></div></div>`;
+  }).join('');
+}
+
+function renderTodayHabits(){
+  const p=P();
+  const done=p.habits.filter(h=>h.done).length;
+  document.getElementById('today-habits').innerHTML=p.habits.map((h,i)=>`
+    <div class="habit-row">
+      <div><div class="habit-name">${h.name}</div></div>
+      <div class="habit-check${h.done?' done':''}" onclick="quickToggle(${i})">${h.done?'✓':''}</div>
+    </div>`).join('')+`<div style="margin-top:.6rem;font-size:12px;color:#aaa">${done} of ${p.habits.length} habits done today</div>`;
+}
+
+function quickToggle(i){P().habits[i].done=!P().habits[i].done;renderAll();}
+
+function renderCompare(){
+  ['p1','p2'].forEach(pid=>{
+    const p=data[pid]; const n=pid.slice(1);
+    document.getElementById('cn'+n).textContent=p.name;
+    document.getElementById('av'+n).textContent=p.initials;
+    const items=[['cal','Cal'],['pro','Pro'],['carb','Carb'],['fat','Fat']];
+    document.getElementById('cp'+n).innerHTML=items.map(([k,lbl])=>{
+      const pc=pct(p.macros[k],p.goals[k]);
+      return`<div class="mini-bar-row"><div class="mini-bar-label"><span>${lbl}</span><span>${pc}%</span></div><div class="progress-bar"><div class="progress-fill" style="width:${pc}%"></div></div></div>`;
+    }).join('');
+  });
+}
+
+function renderMacroTotals(){
+  const p=P();
+  document.getElementById('macro-who').textContent=active==='p1'?'you':'husband';
+  const items=[['Calories','cal','kcal'],['Protein','pro','g'],['Carbs','carb','g'],['Fat','fat','g']];
+  document.getElementById('macro-totals').innerHTML=items.map(([lbl,k,u])=>{
+    const pc=pct(p.macros[k],p.goals[k]);
+    return`<div style="margin-bottom:.75rem"><div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;margin-bottom:4px"><span style="color:#666">${lbl}</span><span>${p.macros[k]} / ${p.goals[k]} ${u} <span class="badge ${badgeClass(pc)}">${pc}%</span></span></div><div class="progress-bar"><div class="progress-fill ${fillClass(pc)}" style="width:${pc}%"></div></div></div>`;
+  }).join('');
+}
+
+function renderHabits(){
+  const p=P();
+  document.getElementById('habit-who').textContent=active==='p1'?'you':'husband';
+  document.getElementById('habit-list').innerHTML=p.habits.map((h,i)=>`
+    <div class="habit-row">
+      <div><div class="habit-name">${h.name}</div><div class="habit-sub">${h.sub||''}</div></div>
+      <div class="habit-check${h.done?' done':''}" onclick="toggleHabit(${i})" role="checkbox" aria-label="${h.name}" aria-checked="${h.done}">${h.done?'✓':''}</div>
+    </div>`).join('');
+}
+
+function toggleHabit(i){P().habits[i].done=!P().habits[i].done;P().weekDone[todayIdx]=P().habits.filter(h=>h.done).length===P().habits.length;renderAll();}
+
+function addHabit(){
+  const inp=document.getElementById('new-habit');
+  const name=inp.value.trim();
+  if(!name)return;
+  P().habits.push({name,done:false,sub:'Custom'});
+  inp.value='';
+  renderHabits();
+}
+
+function renderWeek(){
+  const p=P();
+  document.getElementById('week-view').innerHTML=DAYS.map((d,i)=>{
+    const isToday=i===todayIdx,isDone=p.weekDone[i],isPast=i<todayIdx;
+    let cls='day-dot';
+    if(isDone)cls+=' complete';
+    else if(isPast)cls+=' partial';
+    else if(isToday)cls+=' today-dot';
+    const symbol=isDone?'✓':isPast&&!isDone?'–':isToday?'·':'';
+    return`<div class="day-cell"><div class="day-label">${d}</div><div class="${cls}">${symbol}</div></div>`;
+  }).join('');
+  const streak=p.weekDone.slice(0,todayIdx+1).filter(Boolean).length;
+  document.getElementById('streak-msg').textContent=streak>0?`${streak}-day streak this week 🔥`:'Check off all habits to build your streak!';
+}
+
+function logMacros(){
+  const p=P();
+  p.macros.cal+=parseInt(document.getElementById('in-cal').value)||0;
+  p.macros.pro+=parseInt(document.getElementById('in-pro').value)||0;
+  p.macros.carb+=parseInt(document.getElementById('in-carb').value)||0;
+  p.macros.fat+=parseInt(document.getElementById('in-fat').value)||0;
+  ['in-cal','in-pro','in-carb','in-fat'].forEach(id=>document.getElementById(id).value='');
+  toast('Macros logged ✓');
+  renderAll();
+}
+
+function saveGoals(){
+  const p=P();
+  const c=parseInt(document.getElementById('goal-cal').value);
+  const pr=parseInt(document.getElementById('goal-pro').value);
+  const cr=parseInt(document.getElementById('goal-carb').value);
+  const f=parseInt(document.getElementById('goal-fat').value);
+  if(c>0)p.goals.cal=c; if(pr>0)p.goals.pro=pr; if(cr>0)p.goals.carb=cr; if(f>0)p.goals.fat=f;
+  ['goal-cal','goal-pro','goal-carb','goal-fat'].forEach(id=>document.getElementById(id).value='');
+  toast('Goals saved ✓');
+  renderAll();
+}
+
+function savePlan(){toast('Weekly plan saved ✓');}
+function saveReview(){toast('Weekly review saved — great check-in! ✓');}
+
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+function renderAll(){
+  renderTodayMacros();
+  renderTodayHabits();
+  renderCompare();
+  renderMacroTotals();
+  renderHabits();
+  renderWeek();
+}
+renderAll();
+</script>
+</body>
+</html>
