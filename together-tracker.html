@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Together Tracker</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f4f0;color:#1a1a1a;min-height:100vh}
+.app{max-width:700px;margin:0 auto;padding:1rem}
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:.75rem 0 1rem;border-bottom:1px solid #e0ddd6;margin-bottom:1rem}
+.app-title{font-size:17px;font-weight:600;display:flex;align-items:center;gap:8px}
+.heart{color:#D85A30}
+.profile-toggle{display:flex;gap:6px}
+.profile-btn{padding:6px 16px;border-radius:20px;border:1px solid #ccc;background:#fff;cursor:pointer;font-size:13px;color:#666;transition:all .15s}
+.profile-btn.active{background:#7F77DD;border-color:#7F77DD;color:#fff;font-weight:500}
+.nav{display:flex;gap:0;margin-bottom:1.25rem;border-bottom:1px solid #e0ddd6;overflow-x:auto}
+.nav-btn{padding:9px 13px;border:none;background:transparent;cursor:pointer;font-size:13px;color:#888;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;white-space:nowrap;flex-shrink:0}
+.nav-btn.active{color:#7F77DD;border-bottom-color:#7F77DD;font-weight:500}
+.section{display:none}.section.active{display:block}
+.card{background:#fff;border:1px solid #e8e5de;border-radius:12px;padding:1rem 1.25rem;margin-bottom:1rem}
+.card-title{font-size:13px;color:#888;margin-bottom:.75rem;font-weight:500}
+.metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-bottom:1rem}
+.metric{background:#f5f4f0;border-radius:8px;padding:.75rem 1rem}
+.metric-label{font-size:12px;color:#888;margin-bottom:4px}
+.metric-val{font-size:22px;font-weight:600}
+.metric-val small{font-size:13px;font-weight:400;color:#aaa}
+.metric-goal{font-size:11px;color:#bbb;margin-top:2px}
+.progress-bar{height:6px;border-radius:3px;background:#e8e5de;margin-top:6px;overflow:hidden}
+.progress-fill{height:100%;border-radius:3px;background:#7F77DD;transition:width .4s}
+.progress-fill.green{background:#639922}.progress-fill.amber{background:#BA7517}.progress-fill.coral{background:#D85A30}
+.input-row{display:flex;gap:8px;align-items:center;margin-bottom:.75rem}
+.input-row label{font-size:13px;color:#666;min-width:80px}
+.input-row input[type=number],.input-row input[type=text]{width:110px;padding:7px 10px;border-radius:8px;border:1px solid #ddd;background:#fff;color:#1a1a1a;font-size:14px}
+.input-row input:focus{outline:none;border-color:#7F77DD}
+.input-row span{font-size:12px;color:#aaa}
+.log-btn{padding:9px 20px;border-radius:8px;border:none;background:#7F77DD;color:#fff;cursor:pointer;font-size:14px;font-weight:500;width:100%;margin-top:.25rem;transition:opacity .15s}
+.log-btn:hover{opacity:.88}
+.save-btn{padding:8px 18px;border-radius:8px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:13px;color:#666;margin-top:.25rem}
+.save-btn:hover{background:#f5f4f0}
+.habit-row{display:flex;align-items:center;justify-content:space-between;padding:.65rem 0;border-bottom:1px solid #f0ede8}
+.habit-row:last-child{border-bottom:none}
+.habit-name{font-size:14px}.habit-sub{font-size:12px;color:#aaa;margin-top:2px}
+.habit-check{width:24px;height:24px;border-radius:50%;border:1.5px solid #ccc;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;color:transparent;font-size:13px;font-weight:700}
+.habit-check.done{background:#639922;border-color:#639922;color:#fff}
+.custom-row{display:flex;gap:6px;margin-top:.875rem}
+.custom-row input{flex:1;padding:7px 10px;border-radius:8px;border:1px solid #ddd;background:#fff;color:#1a1a1a;font-size:13px}
+.custom-row input:focus{outline:none;border-color:#7F77DD}
+.add-btn{padding:7px 14px;border-radius:8px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:13px;color:#666}
+.week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:.5rem}
+.day-cell{text-align:center;padding:.4rem 0}
+.day-label{font-size:11px;color:#aaa;margin-bottom:5px}
+.day-dot{width:30px;height:30px;border-radius:50%;margin:0 auto;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;border:1px solid #e0ddd6;color:#ccc;background:#fff}
+.day-dot.complete{background:#7F77DD;border-color:#7F77DD;color:#fff}
+.day-dot.partial{background:#FAEEDA;border-color:#BA7517;color:#633806}
+.day-dot.today-dot{border:2px solid #7F77DD;color:#7F77DD;background:#f0effe}
+.review-q{margin-bottom:1.25rem}
+.q-text{font-size:14px;font-weight:500;margin-bottom:.5rem;line-height:1.4}
+.review-q textarea{width:100%;padding:.65rem .875rem;border-radius:8px;border:1px solid #ddd;background:#fff;color:#1a1a1a;font-size:13px;resize:vertical;min-height:66px;font-family:inherit;line-height:1.5}
+.review-q textarea:focus{outline:none;border-color:#7F77DD}
+.section-heading{font-size:11px;font-weight:600;color:#aaa;text-transform:uppercase;letter-spacing:.06em;margin:1.25rem 0 .65rem;padding-bottom:.4rem;border-bottom:1px solid #f0ede8}
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem}
+.compare-card{background:#fff;border:1px solid #e8e5de;border-radius:12px;padding:.875rem 1rem}
+.compare-name{font-size:13px;font-weight:500;margin-bottom:.75rem;display:flex;align-items:center;gap:7px}
+.avatar{width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:600}
+.avatar.p1{background:#EEEDFE;color:#3C3489}.avatar.p2{background:#E1F5EE;color:#085041}
+.mini-bar-row{margin-bottom:.5rem}
+.mini-bar-label{display:flex;justify-content:space-between;font-size:12px;color:#888;margin-bottom:3px}
+.badge{display:inline-block;padding:2px 7px;border-radius:6px;font-size:11px;font-weight:500}
+.badge-good{background:#EAF3DE;color:#27500A}.badge-mid{background:#FAEEDA;color:#633806}.badge-low{background:#FAECE7;color:#4A1B0C}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .3s;z-index:999;white-space:nowrap}
+.toast.show{opacity:1}
+/* Dashboard */
+.dash-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem}
+.dash-stat{background:#f5f4f0;border-radius:8px;padding:.75rem 1rem;text-align:center}
+.dash-stat-val{font-size:24px;font-weight:700;color:#7F77DD}
+.dash-stat-label{font-size:12px;color:#888;margin-top:2px}
+.bar-chart{display:flex;align-items:flex-end;gap:6px;height:80px;margin-top:.5rem}
+.bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px}
+.bar{width:100%;border-radius:4px 4px 0 0;background:#7F77DD;min-height:2px;transition:height .3s}
+.bar-lbl{font-size:10px;color:#aaa}
+/* History */
+.history-week{margin-bottom:1rem;padding-bottom:1rem;border-bottom:1px solid #f0ede8}
+.history-week:last-child{border-bottom:none}
+.history-title{font-size:13px;font-weight:600;color:#444;margin-bottom:.5rem}
+.history-row{display:flex;justify-content:space-between;font-size:12px;color:#888;margin-bottom:3px}
+.storage-note{font-size:11px;color:#bbb;text-align:center;padding:.5rem;margin-top:.5rem}
+</style>
+</head>
+<body>
+<div id="toast" class="toast"></div>
+<div class="app">
+  <div class="top-bar">
+    <div class="app-title"><span class="heart">♥</span> Together Tracker</div>
+    <div class="profile-toggle">
+      <button class="profile-btn active" onclick="switchProfile('p1')">Meredith</button>
+      <button class="profile-btn" onclick="switchProfile('p2')">Phillip</button>
+    </div>
+  </div>
+
+  <nav class="nav">
+    <button class="nav-btn active" onclick="switchTab('today',this)">Today</button>
+    <button class="nav-btn" onclick="switchTab('macros',this)">Macros</button>
+    <button class="nav-btn" onclick="switchTab('habits',this)">Habits</button>
+    <button class="nav-btn" onclick="switchTab('week',this)">Week</button>
+    <button class="nav-btn" onclick="switchTab('dashboard',this)">Dashboard</button>
+    <button class="nav-btn" onclick="switchTab('review',this)">Review</button>
+  </nav>
+
+  <!-- TODAY -->
+  <div class="section active" id="tab-today">
+    <div class="metric-grid" id="today-macros"></div>
+    <div class="card">
+      <div class="card-title">Today's habits</div>
+      <div id="today-habits"></div>
+    </div>
+    <div class="compare-grid">
+      <div class="compare-card">
+        <div class="compare-name"><span class="avatar p1">M</span><span>Meredith</span></div>
+        <div id="cp1"></div>
+      </div>
+      <div class="compare-card">
+        <div class="compare-name"><span class="avatar p2">P</span><span>Phillip</span></div>
+        <div id="cp2"></div>
+      </div>
+    </div>
+    <p class="storage-note">💾 Data saves locally on this device per profile</p>
+  </div>
+
+  <!-- MACROS -->
+  <div class="section" id="tab-macros">
+    <div class="card">
+      <div class="card-title">Log macros — <span id="macro-who">Meredith</span></div>
+      <div class="input-row"><label>Calories</label><input type="number" id="in-cal" min="0" placeholder="0"><span>kcal</span></div>
+      <div class="input-row"><label>Protein</label><input type="number" id="in-pro" min="0" placeholder="0"><span>g</span></div>
+      <div class="input-row"><label>Carbs</label><input type="number" id="in-carb" min="0" placeholder="0"><span>g</span></div>
+      <div class="input-row"><label>Fat</label><input type="number" id="in-fat" min="0" placeholder="0"><span>g</span></div>
+      <button class="log-btn" onclick="logMacros()">+ Log macros</button>
+    </div>
+    <div class="card">
+      <div class="card-title">Today's totals</div>
+      <div id="macro-totals"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Daily goals</div>
+      <div class="input-row"><label>Calories</label><input type="number" id="goal-cal" min="0" placeholder=""><span>kcal</span></div>
+      <div class="input-row"><label>Protein</label><input type="number" id="goal-pro" min="0" placeholder=""><span>g</span></div>
+      <div class="input-row"><label>Carbs</label><input type="number" id="goal-carb" min="0" placeholder=""><span>g</span></div>
+      <div class="input-row"><label>Fat</label><input type="number" id="goal-fat" min="0" placeholder=""><span>g</span></div>
+      <button class="save-btn" onclick="saveGoals()">✓ Save goals</button>
+    </div>
+  </div>
+
+  <!-- HABITS -->
+  <div class="section" id="tab-habits">
+    <div class="card">
+      <div class="card-title">Daily habits — <span id="habit-who">Meredith</span></div>
+      <div id="habit-list"></div>
+      <div class="custom-row">
+        <input type="text" id="new-habit" placeholder="Add custom habit...">
+        <button class="add-btn" onclick="addHabit()">+ Add</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- WEEK -->
+  <div class="section" id="tab-week">
+    <div class="card">
+      <div class="card-title">This week — habit streak</div>
+      <div class="week-grid" id="week-view"></div>
+      <div id="streak-msg" style="font-size:12px;color:#888;margin-top:.25rem"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Weekly plan</div>
+      <div class="review-q">
+        <div class="q-text">Top 3 priorities this week</div>
+        <textarea id="wk-priorities" placeholder="e.g. Meal prep Sunday, gym 3x, call the plumber..."></textarea>
+      </div>
+      <div class="review-q">
+        <div class="q-text">Home tasks to tackle together</div>
+        <textarea id="wk-home" placeholder="e.g. Grocery run, deep clean kitchen, budget review..."></textarea>
+      </div>
+      <div class="review-q">
+        <div class="q-text">Something fun to do together this week</div>
+        <textarea id="wk-fun" placeholder="e.g. Date night, cook a new recipe, Sunday hike..."></textarea>
+      </div>
+      <button class="log-btn" onclick="savePlan()">Save plan</button>
+    </div>
+    <div class="card">
+      <div class="card-title">Past weeks</div>
+      <div id="history-list"><p style="font-size:13px;color:#aaa">No past weeks yet — data will appear here after your first week.</p></div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="section" id="tab-dashboard">
+    <div class="card">
+      <div class="card-title">Your stats — <span id="dash-who">Meredith</span></div>
+      <div class="dash-row">
+        <div class="dash-stat"><div class="dash-stat-val" id="dash-streak">0</div><div class="dash-stat-label">Day streak 🔥</div></div>
+        <div class="dash-stat"><div class="dash-stat-val" id="dash-habit-pct">0%</div><div class="dash-stat-label">Habits done today</div></div>
+      </div>
+      <div class="dash-row">
+        <div class="dash-stat"><div class="dash-stat-val" id="dash-cal-pct">0%</div><div class="dash-stat-label">Calories goal</div></div>
+        <div class="dash-stat"><div class="dash-stat-val" id="dash-pro-pct">0%</div><div class="dash-stat-label">Protein goal</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">This week's calorie progress</div>
+      <div class="bar-chart" id="dash-bar-chart"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Habit completion this week</div>
+      <div id="dash-habit-bars"></div>
+    </div>
+  </div>
+
+  <!-- REVIEW -->
+  <div class="section" id="tab-review">
+    <div class="card">
+      <div style="font-size:15px;font-weight:600;margin-bottom:.25rem">Weekly review</div>
+      <div style="font-size:13px;color:#888;margin-bottom:.5rem">Discuss these together ♥</div>
+
+      <div class="section-heading">Health &amp; nutrition</div>
+      <div class="review-q">
+        <div class="q-text">How did your nutrition feel this week? Any wins or struggles?</div>
+        <textarea id="rv-nutrition" placeholder="Reflect together..."></textarea>
+      </div>
+      <div class="review-q">
+        <div class="q-text">Which habits stuck? Which need more support?</div>
+        <textarea id="rv-habits" placeholder="Reflect together..."></textarea>
+      </div>
+
+      <div class="section-heading">Home &amp; finances</div>
+      <div class="review-q">
+        <div class="q-text">Did we stay on budget this week? Any unexpected expenses?</div>
+        <textarea id="rv-budget" placeholder="Reflect together..."></textarea>
+      </div>
+      <div class="review-q">
+        <div class="q-text">What home tasks are still pending or coming up?</div>
+        <textarea id="rv-home" placeholder="Reflect together..."></textarea>
+      </div>
+
+      <div class="section-heading">Personal goals</div>
+      <div class="review-q">
+        <div class="q-text">What progress did Meredith and Phillip each make on personal goals?</div>
+        <textarea id="rv-goals" placeholder="Reflect together..."></textarea>
+      </div>
+
+      <div class="section-heading">Connection &amp; relationship</div>
+      <div class="review-q">
+        <div class="q-text">On a scale of 1–10, how connected did we feel this week? Why?</div>
+        <textarea id="rv-connection" placeholder="Reflect together..."></textarea>
+      </div>
+      <div class="review-q">
+        <div class="q-text">One thing we each appreciated about the other this week</div>
+        <textarea id="rv-appreciate" placeholder="Reflect together..."></textarea>
+      </div>
+      <div class="review-q">
+        <div class="q-text">One thing we want to do differently next week</div>
+        <textarea id="rv-next" placeholder="Reflect together..."></textarea>
+      </div>
+      <button class="log-btn" onclick="saveReview()">Save &amp; Archive Review</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const todayIdx=new Date().getDay();
+const todayKey=new Date().toISOString().slice(0,10);
+
+// --- Storage helpers ---
+function lsGet(key,def){try{const v=localStorage.getItem(key);return v!==null?JSON.parse(v):def;}catch(e){return def;}}
+function lsSet(key,val){try{localStorage.setItem(key,JSON.stringify(val));}catch(e){}}
+
+// --- Default profile factory ---
+function makeProfile(name,calGoal,proGoal,carbGoal,fatGoal){
+  return{name,macros:{cal:0,pro:0,carb:0,fat:0},goals:{cal:calGoal,pro:proGoal,carb:carbGoal,fat:fatGoal},habits:[{name:'Water (8 glasses)',done:false,sub:'Hydration'},{name:'Exercise',done:false,sub:'Movement'},{name:'Sleep 7–8 hrs',done:false,sub:'Recovery'}],weekDone:Array(7).fill(false),history:[]};
+}
+
+// --- Load/save per profile per day ---
+function loadProfile(pid){
+  const defaults={p1:makeProfile('Meredith',2000,150,200,65),p2:makeProfile('Phillip',2500,180,250,80)};
+  const stored=lsGet('tt_'+pid,null);
+  if(!stored)return defaults[pid];
+  // migrate: ensure history exists
+  if(!stored.history)stored.history=[];
+  // reset daily macros and habit done if new day
+  const lastDay=lsGet('tt_lastday_'+pid,'');
+  if(lastDay!==todayKey){
+    // archive yesterday before reset
+    if(lastDay&&stored.macros){
+      stored.history.unshift({date:lastDay,macros:{...stored.macros},habitsDone:stored.habits.filter(h=>h.done).length,habitsTotal:stored.habits.length,weekDone:[...stored.weekDone]});
+    }
+    stored.macros={cal:0,pro:0,carb:0,fat:0};
+    stored.habits=stored.habits.map(h=>({...h,done:false}));
+    // if new week (sunday), reset weekDone
+    if(todayIdx===0)stored.weekDone=Array(7).fill(false);
+    lsSet('tt_lastday_'+pid,todayKey);
+  }
+  return stored;
+}
+
+function saveProfile(pid){
+  lsSet('tt_'+pid,data[pid]);
+  lsSet('tt_lastday_'+pid,todayKey);
+}
+
+// --- State ---
+const data={p1:loadProfile('p1'),p2:loadProfile('p2')};
+// ensure names correct
+data.p1.name='Meredith'; data.p2.name='Phillip';
+let active='p1';
+function P(){return data[active];}
+
+// --- Nav ---
+function switchProfile(pid){
+  active=pid;
+  document.querySelectorAll('.profile-btn').forEach((b,i)=>b.classList.toggle('active',(i===0&&pid==='p1')||(i===1&&pid==='p2')));
+  renderAll();
+}
+function switchTab(tab,btn){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  btn.classList.add('active');
+}
+
+// --- Helpers ---
+function pct(v,g){return g>0?Math.min(100,Math.round(v/g*100)):0;}
+function fillClass(p){return p>=85?'green':p>=50?'':p>=25?'amber':'coral';}
+function badgeClass(p){return p>=85?'badge-good':p>=50?'badge-mid':'badge-low';}
+
+// --- Render Today ---
+function renderTodayMacros(){
+  const p=P();
+  const items=[['Calories','cal','kcal'],['Protein','pro','g'],['Carbs','carb','g'],['Fat','fat','g']];
+  document.getElementById('today-macros').innerHTML=items.map(([lbl,k,u])=>{
+    const pc=pct(p.macros[k],p.goals[k]);
+    return`<div class="metric"><div class="metric-label">${lbl}</div><div class="metric-val">${p.macros[k]}<small>${u}</small></div><div class="metric-goal">Goal: ${p.goals[k]}${u}</div><div class="progress-bar"><div class="progress-fill ${fillClass(pc)}" style="width:${pc}%"></div></div></div>`;
+  }).join('');
+}
+
+function renderTodayHabits(){
+  const p=P();
+  const done=p.habits.filter(h=>h.done).length;
+  document.getElementById('today-habits').innerHTML=p.habits.map((h,i)=>`
+    <div class="habit-row">
+      <div><div class="habit-name">${h.name}</div></div>
+      <div class="habit-check${h.done?' done':''}" onclick="quickToggle(${i})">${h.done?'✓':''}</div>
+    </div>`).join('')+`<div style="margin-top:.6rem;font-size:12px;color:#aaa">${done} of ${p.habits.length} habits done today</div>`;
+}
+function quickToggle(i){P().habits[i].done=!P().habits[i].done;P().weekDone[todayIdx]=P().habits.every(h=>h.done);saveProfile(active);renderAll();}
+
+function renderCompare(){
+  ['p1','p2'].forEach(pid=>{
+    const p=data[pid]; const n=pid.slice(1);
+    const items=[['cal','Cal'],['pro','Pro'],['carb','Carb'],['fat','Fat']];
+    document.getElementById('cp'+n).innerHTML=items.map(([k,lbl])=>{
+      const pc=pct(p.macros[k],p.goals[k]);
+      return`<div class="mini-bar-row"><div class="mini-bar-label"><span>${lbl}</span><span>${pc}%</span></div><div class="progress-bar"><div class="progress-fill" style="width:${pc}%"></div></div></div>`;
+    }).join('');
+  });
+}
+
+// --- Render Macros ---
+function renderMacroTotals(){
+  const p=P();
+  document.getElementById('macro-who').textContent=p.name;
+  const items=[['Calories','cal','kcal'],['Protein','pro','g'],['Carbs','carb','g'],['Fat','fat','g']];
+  document.getElementById('macro-totals').innerHTML=items.map(([lbl,k,u])=>{
+    const pc=pct(p.macros[k],p.goals[k]);
+    return`<div style="margin-bottom:.75rem"><div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;margin-bottom:4px"><span style="color:#666">${lbl}</span><span>${p.macros[k]} / ${p.goals[k]} ${u} <span class="badge ${badgeClass(pc)}">${pc}%</span></span></div><div class="progress-bar"><div class="progress-fill ${fillClass(pc)}" style="width:${pc}%"></div></div></div>`;
+  }).join('');
+  // fill goal placeholders
+  ['cal','pro','carb','fat'].forEach(k=>document.getElementById('goal-'+k).placeholder=P().goals[k]);
+}
+
+// --- Render Habits ---
+function renderHabits(){
+  const p=P();
+  document.getElementById('habit-who').textContent=p.name;
+  document.getElementById('habit-list').innerHTML=p.habits.map((h,i)=>`
+    <div class="habit-row">
+      <div><div class="habit-name">${h.name}</div><div class="habit-sub">${h.sub||''}</div></div>
+      <div class="habit-check${h.done?' done':''}" onclick="toggleHabit(${i})">${h.done?'✓':''}</div>
+    </div>`).join('');
+}
+function toggleHabit(i){P().habits[i].done=!P().habits[i].done;P().weekDone[todayIdx]=P().habits.every(h=>h.done);saveProfile(active);renderAll();}
+function addHabit(){
+  const inp=document.getElementById('new-habit');
+  const name=inp.value.trim(); if(!name)return;
+  P().habits.push({name,done:false,sub:'Custom'});
+  inp.value=''; saveProfile(active); renderHabits();
+}
+
+// --- Render Week ---
+function renderWeek(){
+  const p=P();
+  document.getElementById('week-view').innerHTML=DAYS.map((d,i)=>{
+    const isToday=i===todayIdx,isDone=p.weekDone[i],isPast=i<todayIdx;
+    let cls='day-dot';
+    if(isDone)cls+=' complete'; else if(isPast)cls+=' partial'; else if(isToday)cls+=' today-dot';
+    const sym=isDone?'✓':isPast?'–':isToday?'·':'';
+    return`<div class="day-cell"><div class="day-label">${d}</div><div class="${cls}">${sym}</div></div>`;
+  }).join('');
+  const streak=p.weekDone.slice(0,todayIdx+1).filter(Boolean).length;
+  document.getElementById('streak-msg').textContent=streak>0?`${streak}-day streak this week 🔥`:'Check off all habits to build your streak!';
+  renderHistory();
+}
+
+function renderHistory(){
+  const p=P();
+  const el=document.getElementById('history-list');
+  if(!p.history||p.history.length===0){el.innerHTML='<p style="font-size:13px;color:#aaa">No past days logged yet.</p>';return;}
+  el.innerHTML=p.history.map(d=>{
+    const calPc=pct(d.macros.cal,p.goals.cal);
+    return`<div class="history-week">
+      <div class="history-title">${d.date}</div>
+      <div class="history-row"><span>Calories</span><span>${d.macros.cal} kcal <span class="badge ${badgeClass(calPc)}">${calPc}%</span></span></div>
+      <div class="history-row"><span>Protein</span><span>${d.macros.pro}g</span></div>
+      <div class="history-row"><span>Habits</span><span>${d.habitsDone}/${d.habitsTotal} done</span></div>
+    </div>`;
+  }).join('');
+}
+
+// --- Render Dashboard ---
+function renderDashboard(){
+  const p=P();
+  document.getElementById('dash-who').textContent=p.name;
+  const streak=p.weekDone.slice(0,todayIdx+1).filter(Boolean).length;
+  const habitsDone=p.habits.filter(h=>h.done).length;
+  const habitPct=p.habits.length>0?Math.round(habitsDone/p.habits.length*100):0;
+  document.getElementById('dash-streak').textContent=streak;
+  document.getElementById('dash-habit-pct').textContent=habitPct+'%';
+  document.getElementById('dash-cal-pct').textContent=pct(p.macros.cal,p.goals.cal)+'%';
+  document.getElementById('dash-pro-pct').textContent=pct(p.macros.pro,p.goals.pro)+'%';
+
+  // bar chart — last 7 days including today
+  const days7=[];
+  for(let i=6;i>=0;i--){
+    const d=new Date(); d.setDate(d.getDate()-i);
+    const key=d.toISOString().slice(0,10);
+    const label=DAYS[d.getDay()];
+    if(key===todayKey){days7.push({label,cal:p.macros.cal,goal:p.goals.cal});}
+    else{const h=p.history.find(x=>x.date===key);days7.push({label,cal:h?h.macros.cal:0,goal:p.goals.cal});}
+  }
+  const maxCal=Math.max(...days7.map(d=>d.cal),p.goals.cal,1);
+  document.getElementById('dash-bar-chart').innerHTML=days7.map(d=>{
+    const h=Math.max(4,Math.round((d.cal/maxCal)*76));
+    const cl=d.cal>=d.goal*0.85?'#639922':d.cal>=d.goal*0.5?'#7F77DD':'#e0ddd6';
+    return`<div class="bar-wrap"><div class="bar" style="height:${h}px;background:${cl}"></div><div class="bar-lbl">${d.label}</div></div>`;
+  }).join('');
+
+  // habit bars
+  document.getElementById('dash-habit-bars').innerHTML=p.habits.map(h=>`
+    <div class="mini-bar-row" style="margin-bottom:.65rem">
+      <div class="mini-bar-label"><span>${h.name}</span><span>${h.done?'✓ Done':'—'}</span></div>
+      <div class="progress-bar"><div class="progress-fill ${h.done?'green':''}" style="width:${h.done?100:0}%"></div></div>
+    </div>`).join('');
+}
+
+// --- Actions ---
+function logMacros(){
+  const p=P();
+  p.macros.cal+=parseInt(document.getElementById('in-cal').value)||0;
+  p.macros.pro+=parseInt(document.getElementById('in-pro').value)||0;
+  p.macros.carb+=parseInt(document.getElementById('in-carb').value)||0;
+  p.macros.fat+=parseInt(document.getElementById('in-fat').value)||0;
+  ['in-cal','in-pro','in-carb','in-fat'].forEach(id=>document.getElementById(id).value='');
+  saveProfile(active); toast('Macros logged ✓'); renderAll();
+}
+
+function saveGoals(){
+  const p=P();
+  const c=parseInt(document.getElementById('goal-cal').value);
+  const pr=parseInt(document.getElementById('goal-pro').value);
+  const cr=parseInt(document.getElementById('goal-carb').value);
+  const f=parseInt(document.getElementById('goal-fat').value);
+  if(c>0)p.goals.cal=c; if(pr>0)p.goals.pro=pr; if(cr>0)p.goals.carb=cr; if(f>0)p.goals.fat=f;
+  ['goal-cal','goal-pro','goal-carb','goal-fat'].forEach(id=>document.getElementById(id).value='');
+  saveProfile(active); toast('Goals saved ✓'); renderAll();
+}
+
+function savePlan(){
+  const plan={priorities:document.getElementById('wk-priorities').value,home:document.getElementById('wk-home').value,fun:document.getElementById('wk-fun').value};
+  lsSet('tt_plan_'+active,plan); toast('Weekly plan saved ✓');
+}
+
+function saveReview(){
+  const review={date:todayKey,nutrition:document.getElementById('rv-nutrition').value,habits:document.getElementById('rv-habits').value,budget:document.getElementById('rv-budget').value,home:document.getElementById('rv-home').value,goals:document.getElementById('rv-goals').value,connection:document.getElementById('rv-connection').value,appreciate:document.getElementById('rv-appreciate').value,next:document.getElementById('rv-next').value};
+  const reviews=lsGet('tt_reviews',[]);
+  reviews.unshift(review); if(reviews.length>12)reviews.pop();
+  lsSet('tt_reviews',reviews); toast('Review saved & archived ✓');
+}
+
+// Load saved plan
+function loadPlan(){
+  const plan=lsGet('tt_plan_'+active,null);
+  if(plan){
+    document.getElementById('wk-priorities').value=plan.priorities||'';
+    document.getElementById('wk-home').value=plan.home||'';
+    document.getElementById('wk-fun').value=plan.fun||'';
+  }
+}
+
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+function renderAll(){
+  renderTodayMacros(); renderTodayHabits(); renderCompare();
+  renderMacroTotals(); renderHabits(); renderWeek(); renderDashboard(); loadPlan();
+}
+renderAll();
+</script>
+</body>
+</html>
